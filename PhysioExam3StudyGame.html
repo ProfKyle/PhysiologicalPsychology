@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Neuroscience Study Game: Sexual Behavior, Development, and Emotion</title>
+<style>
+  :root{
+    --bg:#111827;--card:#1f2937;--accent:#38bdf8;--accent2:#a78bfa;--good:#22c55e;--bad:#ef4444;--text:#f9fafb;--muted:#cbd5e1;--gold:#fbbf24;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(135deg,#111827,#1e1b4b);color:var(--text);min-height:100vh}
+  header{padding:28px 18px;text-align:center;background:rgba(0,0,0,.25);border-bottom:1px solid rgba(255,255,255,.12)}
+  h1{margin:0 0 8px;font-size:clamp(1.6rem,4vw,2.7rem)}
+  .subtitle{color:var(--muted);max-width:900px;margin:0 auto;line-height:1.5}
+  main{max-width:1100px;margin:0 auto;padding:22px}
+  .panel{background:rgba(31,41,55,.92);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:22px;margin-bottom:18px;box-shadow:0 14px 40px rgba(0,0,0,.25)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+  button{border:none;border-radius:14px;padding:13px 16px;font-weight:700;cursor:pointer;background:var(--accent);color:#07111f;transition:.15s transform,.15s filter}
+  button:hover{transform:translateY(-1px);filter:brightness(1.08)}
+  button.secondary{background:#374151;color:var(--text);border:1px solid rgba(255,255,255,.16)}
+  button.purple{background:var(--accent2);color:#111827}
+  button.gold{background:var(--gold);color:#111827}
+  button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  .stats{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+  .stat{background:rgba(255,255,255,.09);padding:10px 14px;border-radius:999px;color:var(--muted)}
+  .mode-card{padding:18px;border-radius:16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13)}
+  .mode-card h3{margin-top:0}.mode-card p{color:var(--muted);line-height:1.45}
+  .question{font-size:1.3rem;line-height:1.45;margin:6px 0 16px}
+  .answers{display:grid;gap:10px}.answer{background:#374151;color:var(--text);border:1px solid rgba(255,255,255,.15);text-align:left}.answer.correct{background:rgba(34,197,94,.22);border-color:var(--good)}.answer.wrong{background:rgba(239,68,68,.22);border-color:var(--bad)}
+  .feedback{margin-top:15px;padding:14px;border-radius:14px;background:rgba(255,255,255,.08);line-height:1.55;color:var(--muted)}
+  .feedback strong{color:var(--text)}
+  .bar-wrap{height:12px;background:#374151;border-radius:999px;overflow:hidden;margin-top:8px}.bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:.25s}
+  .hidden{display:none!important}
+  .term-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}.term{padding:14px;background:rgba(255,255,255,.08);border-radius:14px;border:1px solid rgba(255,255,255,.12);cursor:pointer}.term.selected{outline:3px solid var(--accent)}.term.matched{background:rgba(34,197,94,.18);cursor:default}.term h4{margin:0 0 6px;color:white}.term p{margin:0;color:var(--muted);line-height:1.4}
+  .scenario-box{background:rgba(255,255,255,.07);border-left:5px solid var(--accent);padding:16px;border-radius:12px;margin-bottom:14px;color:var(--muted);line-height:1.5}
+  .small{font-size:.92rem;color:var(--muted)}
+  .footer{text-align:center;color:var(--muted);font-size:.9rem;margin:26px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>Neuroscience Study Game</h1>
+  <p class="subtitle">Review game for Chapter 11: Sexual Behavior and Development and Chapter 13: Emotion and Mood. Includes randomized questions, matching, scenarios, instant feedback, and a final score.</p>
+  <div class="stats">
+    <div class="stat">Score: <span id="score">0</span></div>
+    <div class="stat">Streak: <span id="streak">0</span></div>
+    <div class="stat">Questions: <span id="answered">0</span>/<span id="total">0</span></div>
+  </div>
+</header>
+<main>
+  <section id="home" class="panel">
+    <h2>Choose a study mode</h2>
+    <div class="grid">
+      <div class="mode-card"><h3>Quick Quiz</h3><p>Multiple-choice questions with explanations. Good for fast retrieval practice.</p><button onclick="startQuiz('mixed')">Start Mixed Quiz</button></div>
+      <div class="mode-card"><h3>Chapter 11 Focus</h3><p>Sexual reproduction, meiosis, sexual dimorphism, genetic variation, and sex differentiation.</p><button onclick="startQuiz('ch11')">Practice Chapter 11</button></div>
+      <div class="mode-card"><h3>Chapter 13 Focus</h3><p>Emotion theories, basic emotions, autonomic arousal, cognitive appraisal, and brain systems.</p><button onclick="startQuiz('ch13')">Practice Chapter 13</button></div>
+      <div class="mode-card"><h3>Matching Challenge</h3><p>Match core terms to definitions. Great for vocabulary review before class.</p><button class="purple" onclick="startMatching()">Start Matching</button></div>
+      <div class="mode-card"><h3>Scenario Challenge</h3><p>Apply concepts to short examples, including emotion theory comparisons.</p><button class="gold" onclick="startScenarios()">Start Scenarios</button></div>
+    </div>
+  </section>
+
+  <section id="quiz" class="panel hidden">
+    <h2 id="quizTitle">Quiz</h2>
+    <div class="small">Progress</div><div class="bar-wrap"><div class="bar" id="progressBar"></div></div>
+    <p class="question" id="questionText"></p>
+    <div class="answers" id="answers"></div>
+    <div id="feedback" class="feedback hidden"></div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap"><button id="nextBtn" onclick="nextQuestion()" disabled>Next</button><button class="secondary" onclick="goHome()">Back to Menu</button></div>
+  </section>
+
+  <section id="matching" class="panel hidden">
+    <h2>Matching Challenge</h2>
+    <p class="small">Click one term and one definition. Matched pairs stay green.</p>
+    <div class="term-grid" id="matchGrid"></div>
+    <div id="matchFeedback" class="feedback hidden"></div>
+    <div style="margin-top:16px"><button class="secondary" onclick="goHome()">Back to Menu</button></div>
+  </section>
+
+  <section id="scenarios" class="panel hidden">
+    <h2>Scenario Challenge</h2>
+    <div class="small">Progress</div><div class="bar-wrap"><div class="bar" id="scenarioBar"></div></div>
+    <div class="scenario-box" id="scenarioText"></div>
+    <p class="question" id="scenarioQuestion"></p>
+    <div class="answers" id="scenarioAnswers"></div>
+    <div id="scenarioFeedback" class="feedback hidden"></div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap"><button id="scenarioNext" onclick="nextScenario()" disabled>Next</button><button class="secondary" onclick="goHome()">Back to Menu</button></div>
+  </section>
+
+  <section id="results" class="panel hidden">
+    <h2>Results</h2><p id="resultText" class="question"></p><div id="resultAdvice" class="feedback"></div><button onclick="goHome()">Play Again</button>
+  </section>
+  <div class="footer">Tip: Use this game in pairs, then have students explain why the correct answer is correct and why one distractor is tempting.</div>
+</main>
+<script>
+const allQuestions = [
+{ch:'ch11',q:'Most eukaryotic body cells are diploid. What does diploid mean?',a:['They contain two sets of chromosomes, one from each parent.','They contain one set of chromosomes only.','They contain no chromosomes.','They contain only sex chromosomes.'],c:0,e:'Diploid cells have two copies of each chromosome. In humans, this is usually described as 23 pairs.'},
+{ch:'ch11',q:'Which process produces haploid gametes such as sperm and eggs?',a:['Mitosis','Meiosis','Fertilization','Differentiation'],c:1,e:'Meiosis creates haploid gametes with one copy of each chromosome.'},
+{ch:'ch11',q:'What is the direct result of fertilization?',a:['Two identical diploid cells','A genetically unique diploid zygote','Four haploid gametes','A duplicated chromosome'],c:1,e:'Fertilization merges two haploid gametes to form a genetically unique diploid zygote.'},
+{ch:'ch11',q:'Which event increases genetic diversity by swapping pieces between homologous chromosomes?',a:['Homologous recombination','Autonomic specificity','Cognitive appraisal','Piloerection'],c:0,e:'Homologous recombination during meiosis creates new combinations of genes.'},
+{ch:'ch11',q:'One proposed adaptive value of sexual reproduction is that it can:',a:['Eliminate all mutations immediately','Mask harmful mutations and increase variation','Prevent development from occurring','Make all offspring genetically identical'],c:1,e:'Sexual reproduction can buffer harmful mutations and increase genetic variation in a population.'},
+{ch:'ch11',q:'Sexual dimorphism refers to:',a:['Differences in physical or behavioral traits between males and females of a species','The fusion of sperm and egg','The production of four identical gametes','A lack of sex differences'],c:0,e:'Sexual dimorphism can include physical traits and behavior, often shaped by sexual selection.'},
+{ch:'ch11',q:'Sexual selection is best described as natural selection for traits that:',a:['Improve mating success','Always improve survival','Prevent gamete formation','Reduce genetic variation'],c:0,e:'Sexual selection favors traits that increase access to mates or reproductive success.'},
+{ch:'ch11',q:'Why are two different gamete types thought to be useful in many species?',a:['They may reduce self-fertilization and inbreeding.','They make all offspring clones.','They remove the need for meiosis.','They prevent fertilization.'],c:0,e:'Different gamete types can reduce fusion of closely related or identical gametes.'},
+{ch:'ch13',q:'In this chapter, emotion is described as complex feelings produced by synthesizing:',a:['Environmental cues and external stimuli','Only reflexes from the spinal cord','Only language and memory','Only genetic information'],c:0,e:'Emotion involves external cues, internal physiological states, brain systems, cognition, and behavior.'},
+{ch:'ch13',q:'Which set best captures the three major factors underlying emotions?',a:['Environmental context, bodily/physiological states, and brain systems','Chromosomes, gametes, and zygotes','Alleles, mitosis, and meiosis','Sperm, eggs, and inbreeding'],c:0,e:'The emotion chapter emphasizes context, physiological state, and brain systems.'},
+{ch:'ch13',q:'The James-Lange theory proposes that emotional experience comes after:',a:['Perceiving bodily/autonomic changes','The brain labels emotion before the body changes','Fertilization','Genetic recombination'],c:0,e:'James-Lange is bottom-up: stimulus → physiological response → emotional experience.'},
+{ch:'ch13',q:'Why is James-Lange called a bottom-up theory?',a:['Body changes are interpreted by the brain to produce emotion.','The cortex creates emotion with no body response.','Gametes fuse from bottom to top.','It only explains happiness.'],c:0,e:'In James-Lange, peripheral bodily responses are central to the emotion.'},
+{ch:'ch13',q:'The Cannon-Bard theory argues that emotional feeling and physiological arousal occur:',a:['Simultaneously and independently','Only after weeks of learning','Only after cognitive labeling','Only during meiosis'],c:0,e:'Cannon-Bard is top-down and emphasizes simultaneous emotional and bodily responses.'},
+{ch:'ch13',q:'The Schachter-Singer theory is also called the:',a:['Two-factor theory','One-gene theory','Haploid theory','Mitosis theory'],c:0,e:'It is the two-factor theory because emotion depends on physiological arousal plus cognitive appraisal.'},
+{ch:'ch13',q:'In the Schachter-Singer view, the same bodily arousal can become different emotions depending on:',a:['Cognitive interpretation of context','Chromosome number','Whether the cell is diploid','Whether sperm are mobile'],c:0,e:'Context and appraisal help label the emotion.'},
+{ch:'ch13',q:'Which of these is one of the basic emotions presented in the material?',a:['Disgust','Meiosis','Fertilization','Dimorphism'],c:0,e:'The emotion slides include anger, fear, disgust, happiness, and sadness as examples.'}
+];
+const scenarios = [
+{s:'A student sees a snake on a hiking trail. Their heart races, breathing changes, and only after noticing those bodily changes do they report feeling afraid.',q:'Which theory best fits this sequence?',a:['James-Lange','Cannon-Bard','Schachter-Singer','Sexual selection'],c:0,e:'James-Lange emphasizes emotion arising from perceived physiological changes.'},
+{s:'Two students both feel strong arousal after a surprise. One is at a haunted house and calls it fear. The other is at a surprise party and calls it excitement.',q:'Which theory best explains different labels for similar arousal?',a:['Schachter-Singer','Mitosis','Diploidy','Cannon-Bard only'],c:0,e:'Schachter-Singer emphasizes physiological arousal plus cognitive appraisal of context.'},
+{s:'A species has males with bright ornaments used to attract mates, even though the ornaments may not directly improve survival.',q:'This is most directly an example of:',a:['Sexual selection','Mitosis','Autonomic specificity','Fertilization'],c:0,e:'Sexual selection favors traits that improve mating success.'},
+{s:'During gamete formation, chromosomes exchange pieces, creating new allele combinations not found in either parent.',q:'What process is being described?',a:['Homologous recombination','Fertilization','Cannon-Bard theory','Sexual dimorphism'],c:0,e:'Homologous recombination occurs during meiosis and increases genetic diversity.'},
+{s:'A threatening dog appears. The person feels fear at the same time their body prepares to flee, rather than one causing the other in a strict sequence.',q:'Which theory best fits this?',a:['Cannon-Bard','James-Lange','Punnett square inheritance','Homologous recombination'],c:0,e:'Cannon-Bard proposes simultaneous, independent emotional and physiological responses.'}
+];
+const matches = [
+['Diploid','Two sets of chromosomes, one from each parent.'],['Haploid','One set of chromosomes, as in gametes.'],['Meiosis','Cell division that produces gametes.'],['Fertilization','Fusion of two haploid gametes to form a zygote.'],['Sexual dimorphism','Sex-linked differences in physical or behavioral traits.'],['James-Lange','Emotion follows perception of bodily arousal.'],['Cannon-Bard','Emotion and physiological arousal occur simultaneously.'],['Schachter-Singer','Emotion depends on arousal plus cognitive appraisal.']
+];
+let quizQs=[], current=0, score=0, answered=0, streak=0, selectedMatch=null, matched=0, scenarioIndex=0;
+function shuffle(arr){return [...arr].sort(()=>Math.random()-.5)}
+function hideAll(){['home','quiz','matching','scenarios','results'].forEach(id=>document.getElementById(id).classList.add('hidden'))}
+function updateStats(){document.getElementById('score').textContent=score;document.getElementById('answered').textContent=answered;document.getElementById('streak').textContent=streak;}
+function resetStats(total){score=0;answered=0;streak=0;document.getElementById('total').textContent=total;updateStats()}
+function startQuiz(ch){hideAll();document.getElementById('quiz').classList.remove('hidden');let pool= ch==='mixed'?allQuestions:allQuestions.filter(x=>x.ch===ch);quizQs=shuffle(pool).slice(0,Math.min(10,pool.length));current=0;resetStats(quizQs.length);document.getElementById('quizTitle').textContent= ch==='ch11'?'Chapter 11 Focus':ch==='ch13'?'Chapter 13 Focus':'Mixed Quick Quiz';showQuestion()}
+function showQuestion(){let item=quizQs[current];document.getElementById('questionText').textContent=item.q;document.getElementById('feedback').classList.add('hidden');document.getElementById('nextBtn').disabled=true;document.getElementById('progressBar').style.width=(current/quizQs.length*100)+'%';let ans=document.getElementById('answers');ans.innerHTML='';let correctText=item.a[item.c];shuffle(item.a).forEach(txt=>{let b=document.createElement('button');b.className='answer';b.textContent=txt;b.onclick=()=>selectAnswer(b,txt===correctText,item.e,correctText);ans.appendChild(b)})}
+function selectAnswer(btn,isCorrect,explain,correctText){document.querySelectorAll('#answers .answer').forEach(b=>{b.disabled=true;if(b.textContent===correctText)b.classList.add('correct')});if(!isCorrect){btn.classList.add('wrong');streak=0}else{score+=10;streak++}answered++;updateStats();let fb=document.getElementById('feedback');fb.classList.remove('hidden');fb.innerHTML=(isCorrect?'<strong>Correct.</strong> ':'<strong>Not quite.</strong> Correct answer: <strong>'+correctText+'</strong>. ')+explain;document.getElementById('nextBtn').disabled=false}
+function nextQuestion(){current++;if(current>=quizQs.length){showResults()}else showQuestion()}
+function showResults(){hideAll();document.getElementById('results').classList.remove('hidden');document.getElementById('progressBar').style.width='100%';let pct=Math.round(score/(quizQs.length*10)*100);document.getElementById('resultText').textContent=`Final score: ${score}/${quizQs.length*10} (${pct}%)`;document.getElementById('resultAdvice').innerHTML=pct>=80?'Strong work. Next, explain each concept aloud without looking.':pct>=60?'Good start. Replay the missed chapter focus mode and write one-sentence definitions for weak terms.':'Review the matching mode first, then replay the quiz. Focus on sequence questions: meiosis/fertilization and the three emotion theories.'}
+function startMatching(){hideAll();document.getElementById('matching').classList.remove('hidden');resetStats(matches.length);selectedMatch=null;matched=0;let cards=[];matches.forEach((m,i)=>{cards.push({type:'term',text:m[0],pair:i});cards.push({type:'def',text:m[1],pair:i})});cards=shuffle(cards);let grid=document.getElementById('matchGrid');grid.innerHTML='';cards.forEach(card=>{let div=document.createElement('div');div.className='term';div.dataset.pair=card.pair;div.dataset.type=card.type;div.innerHTML=card.type==='term'?`<h4>${card.text}</h4><p>Term</p>`:`<h4>Definition</h4><p>${card.text}</p>`;div.onclick=()=>clickMatch(div);grid.appendChild(div)})}
+function clickMatch(card){if(card.classList.contains('matched'))return;if(!selectedMatch){selectedMatch=card;card.classList.add('selected');return}if(selectedMatch===card){card.classList.remove('selected');selectedMatch=null;return}let ok=selectedMatch.dataset.pair===card.dataset.pair && selectedMatch.dataset.type!==card.dataset.type;let fb=document.getElementById('matchFeedback');fb.classList.remove('hidden');if(ok){selectedMatch.classList.add('matched');card.classList.add('matched');selectedMatch.classList.remove('selected');score+=10;streak++;answered++;matched++;fb.innerHTML='<strong>Match!</strong> Keep going.';if(matched===matches.length){fb.innerHTML='<strong>All matched.</strong> Great vocabulary review.'}}else{selectedMatch.classList.remove('selected');streak=0;answered++;fb.innerHTML='<strong>Try again.</strong> Choose one term and the definition that explains it.'}selectedMatch=null;updateStats()}
+function startScenarios(){hideAll();document.getElementById('scenarios').classList.remove('hidden');scenarioIndex=0;resetStats(scenarios.length);showScenario()}
+function showScenario(){let item=scenarios[scenarioIndex];document.getElementById('scenarioText').textContent=item.s;document.getElementById('scenarioQuestion').textContent=item.q;document.getElementById('scenarioFeedback').classList.add('hidden');document.getElementById('scenarioNext').disabled=true;document.getElementById('scenarioBar').style.width=(scenarioIndex/scenarios.length*100)+'%';let ans=document.getElementById('scenarioAnswers');ans.innerHTML='';let correctText=item.a[item.c];shuffle(item.a).forEach(txt=>{let b=document.createElement('button');b.className='answer';b.textContent=txt;b.onclick=()=>selectScenario(b,txt===correctText,item.e,correctText);ans.appendChild(b)})}
+function selectScenario(btn,isCorrect,explain,correctText){document.querySelectorAll('#scenarioAnswers .answer').forEach(b=>{b.disabled=true;if(b.textContent===correctText)b.classList.add('correct')});if(!isCorrect){btn.classList.add('wrong');streak=0}else{score+=10;streak++}answered++;updateStats();let fb=document.getElementById('scenarioFeedback');fb.classList.remove('hidden');fb.innerHTML=(isCorrect?'<strong>Correct.</strong> ':'<strong>Not quite.</strong> Correct answer: <strong>'+correctText+'</strong>. ')+explain;document.getElementById('scenarioNext').disabled=false}
+function nextScenario(){scenarioIndex++;if(scenarioIndex>=scenarios.length){showResults()}else showScenario()}
+function goHome(){hideAll();document.getElementById('home').classList.remove('hidden');document.getElementById('total').textContent='0';score=answered=streak=0;updateStats()}
+</script>
+</body>
+</html>
